@@ -6,6 +6,7 @@ This repository holds the MVP for loren, a tool that makes it easy for school to
 This aims to be entirely self-service
 
 ## getting started
+head over to the issues & projects section to get started on a task
 This repo holds the source code for both the infrastructure and the app.
 to install the dev dependencies, run setup.sh on macos/linux or setup.ps1 on windows.
 
