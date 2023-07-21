@@ -1,6 +1,7 @@
 FROM ubuntu
 ARG TARGETARCH
 ARG SOPS_VERSION=3.7.3
+ENV XDG_CONFIG_HOME=/root/.config
 RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
         curl \
         git \
@@ -26,4 +27,8 @@ RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
     && apt-get update && sudo apt-get install -y terraform nodejs && rm -rf /var/lib/apt/lists/* \
     && wget https://github.com/vitobotta/hetzner-k3s/releases/latest/download/hetzner-k3s-linux-x86_64 \ 
     && mv hetzner-k3s-linux-x86_64 /usr/local/bin/hetzner-k3s \
-    && chmod +x /usr/local/bin/hetzner-k3s
+    && chmod +x /usr/local/bin/hetzner-k3s \
+    && echo 'eval "$(direnv hook bash)"' >> ~/.bashrc \
+    && mkdir -p /root/.config/direnv /root/.sops \
+    && echo '[whitelist]' > /root/.config/direnv/direnv.toml \
+    && echo 'prefix = ["/root/"]' >> /root/.config/direnv/direnv.toml \

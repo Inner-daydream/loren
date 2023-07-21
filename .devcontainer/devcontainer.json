@@ -2,21 +2,11 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
 {
 	"name": "loren-dev",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "ghcr.io/inner-daydream/lorendev:latest",
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [3000]
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "uname -a",
-
-	// Configure tool-specific properties.
-	// "customizations": {},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	"forwardPorts": [3000],
+	// ask for  the user sops AGE private key and write it to a file
+	"postCreateCommand": "read -p 'Enter sops AGE private key: ' sops_key && echo $sops_key > /root/.sops/key.txt",
+	"containerEnv": {
+		"SOPS_AGE_KEY_FILE": "/root/.sops/key.txt"
+	}
 }
