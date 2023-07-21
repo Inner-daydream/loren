@@ -1,0 +1,6 @@
+# Ignore everything
+*
+# But keep the devcontainer related files
+!devcontainer.json
+!.gitignore
+!dockerfile
