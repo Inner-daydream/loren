@@ -3,10 +3,25 @@
 {
 	"name": "loren-dev",
 	"image": "ghcr.io/inner-daydream/lorendev:latest",
-	"forwardPorts": [3000],
+	"forwardPorts": [
+		3000
+	],
 	// ask for  the user sops AGE private key and write it to a file
 	"postCreateCommand": "./.devcontainer/postCreate.sh",
 	"containerEnv": {
 		"SOPS_AGE_KEY_FILE": "/root/.sops/key.txt"
+	},
+	"customizations": {
+		"extensions": [
+			"GitHub.copilot",
+			"ms-vscode.vscode-typescript-next",
+			"ms-vscode.vscode-typescript-tslint-plugin",
+			"VisualStudioExptTeam.vscodeintellicode",
+			"dbaeumer.vscode-eslint",
+			"christian-kohler.npm-intellisense"
+		],
+		"settings": {
+			"editor.formatOnSave": true
+		}
 	}
 }
