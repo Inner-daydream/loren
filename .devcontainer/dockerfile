@@ -31,4 +31,4 @@ RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
     && echo 'eval "$(direnv hook bash)"' >> ~/.bashrc \
     && mkdir -p /root/.config/direnv /root/.sops \
     && echo '[whitelist]' > /root/.config/direnv/direnv.toml \
-    && echo 'prefix = ["/root/"]' >> /root/.config/direnv/direnv.toml \
+    && echo 'prefix = ["/"]' >> /root/.config/direnv/direnv.toml \
