@@ -7,3 +7,4 @@ fi
 echo $SOPS_AGE_KEY > /home/vscode/.sops/key.txt
 
 cd loren-server && npm install
+cd ../infra/terraform && terraform init

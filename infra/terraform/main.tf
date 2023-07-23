@@ -8,6 +8,12 @@ terraform {
     }
   }
   required_version = ">= 0.13"
+  cloud {
+    organization = "loren"
+    workspaces {
+      name = "loren"
+    }
+  }
 }
 
 variable "default_hetzner_user" {
