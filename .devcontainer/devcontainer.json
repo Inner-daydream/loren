@@ -5,7 +5,7 @@
 	"image": "ghcr.io/inner-daydream/lorendev:latest",
 	"forwardPorts": [3000],
 	// ask for  the user sops AGE private key and write it to a file
-	"postCreateCommand": "read -p 'Enter sops AGE private key: ' sops_key && echo $sops_key > /root/.sops/key.txt",
+	"postCreateCommand": "./.devcontainer/postCreate.sh",
 	"containerEnv": {
 		"SOPS_AGE_KEY_FILE": "/root/.sops/key.txt"
 	}

@@ -4,3 +4,4 @@
 !devcontainer.json
 !.gitignore
 !dockerfile
+!postCreate.sh
