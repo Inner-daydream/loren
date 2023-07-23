@@ -11,6 +11,15 @@ sedi () {
 # exit when any command fails
 set -e
 
+# sending a discord notification
+send_notification() {
+    curl -H "Content-Type: application/json" \
+        -X POST \
+        -d "{\"content\": \"$1\"}" \
+        "$DISCORD_WEBHOOK"
+}
+
+send_notification "starting a new cluster deployment"
 # Set up remote vpc access
 echo "creating the vpc.."
 hcloud network create --ip-range "$VPC_SUBNET" --name "$CLUSTER_NAME" 1>/dev/null

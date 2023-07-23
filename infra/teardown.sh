@@ -1,4 +1,12 @@
 #!/bin/sh
+echo "sending a discord notification..."
+send_notification() {
+    curl -H "Content-Type: application/json" \
+        -X POST \
+        -d "{\"content\": \"$1\"}" \
+        "$DISCORD_WEBHOOK"
+}
+send_notification "deleting the cluster"
 echo "Dettaching the bastion from the tailscale network..."
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null  -o ConnectTimeout=10 \
     -i "$SSH_PRIVATE_KEY_PATH" \
