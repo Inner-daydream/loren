@@ -9,19 +9,21 @@
 	// ask for  the user sops AGE private key and write it to a file
 	"postCreateCommand": "./.devcontainer/postCreate.sh",
 	"containerEnv": {
-		"SOPS_AGE_KEY_FILE": "/root/.sops/key.txt"
+		"SOPS_AGE_KEY_FILE": "/home/vscode/.sops/key.txt"
 	},
+	"remoteUser": "vscode",
 	"customizations": {
-		"extensions": [
-			"GitHub.copilot",
-			"ms-vscode.vscode-typescript-next",
-			"ms-vscode.vscode-typescript-tslint-plugin",
-			"VisualStudioExptTeam.vscodeintellicode",
-			"dbaeumer.vscode-eslint",
-			"christian-kohler.npm-intellisense"
-		],
-		"settings": {
-			"editor.formatOnSave": true
+		"vscode": {
+			"extensions": [
+				"GitHub.copilot",
+				"ms-vscode.vscode-typescript-next",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"dbaeumer.vscode-eslint",
+				"christian-kohler.npm-intellisense"
+			],
+			"settings": {
+				"editor.formatOnSave": true
+			}
 		}
 	}
 }

@@ -1,7 +1,7 @@
 FROM ubuntu
 ARG TARGETARCH
 ARG SOPS_VERSION=3.7.3
-ENV XDG_CONFIG_HOME=/root/.config
+ENV XDG_CONFIG_HOME=/home/vscode/.config
 RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
         curl \
         git \
@@ -11,12 +11,16 @@ RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
         wget \
         age \
         direnv \
+    && groupadd --gid 1000 vscode \
+    && useradd --uid 1000 --gid vscode --shell /bin/bash --create-home vscode \
+    && echo "vscode ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/01-vscode \
+    && chmod 0440 /etc/sudoers.d/01-vscode \
     && wget https://github.com/hetznercloud/cli/releases/latest/download/hcloud-linux-${TARGETARCH}.tar.gz \
     && tar -xzf hcloud-linux-${TARGETARCH}.tar.gz \
     && mv hcloud /usr/local/bin/hcloud \
     && rm hcloud-linux-${TARGETARCH}.tar.gz \
     && chmod +x /usr/local/bin/hcloud \
-    && echo 'source <(hcloud completion bash)' >> ~/.bashrc \
+    && echo 'source <(hcloud completion bash)' >> /home/vscode/.bashrc \
     && wget https://github.com/getsops/sops/releases/latest/download/sops-v${SOPS_VERSION}.linux.$TARGETARCH \
     && mv sops-v${SOPS_VERSION}.linux.$TARGETARCH /usr/local/bin/sops \
     && chmod +x /usr/local/bin/sops \
@@ -28,7 +32,8 @@ RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
     && wget https://github.com/vitobotta/hetzner-k3s/releases/latest/download/hetzner-k3s-linux-x86_64 \ 
     && mv hetzner-k3s-linux-x86_64 /usr/local/bin/hetzner-k3s \
     && chmod +x /usr/local/bin/hetzner-k3s \
-    && echo 'eval "$(direnv hook bash)"' >> ~/.bashrc \
-    && mkdir -p /root/.config/direnv /root/.sops \
-    && echo '[whitelist]' > /root/.config/direnv/direnv.toml \
-    && echo 'prefix = ["/"]' >> /root/.config/direnv/direnv.toml \
+    && echo 'eval "$(direnv hook bash)"' >> /home/vscode/.bashrc \
+    && mkdir -p /home/vscode/.config/direnv /home/vscode/.sops \
+    && echo '[whitelist]' > /home/vscode/.config/direnv/direnv.toml \
+    && echo 'prefix = ["/"]' >> /home/vscode/.config/direnv/direnv.toml \
+    && chown -R vscode:vscode /home/vscode/.config /home/vscode/.sops
