@@ -45,6 +45,13 @@ variable "cluster_name" {
 variable "tailscale_api_key" {
   type = string
 }
+variable "tailscale_oauth_client_id" {
+  type = string
+}
+variable "tailscale_oauth_client_secret" {
+  type = string
+}
+
 variable "tailscale_org" {
   type = string
 }
