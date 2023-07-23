@@ -37,3 +37,4 @@ placement_groups=$(hcloud placement-group list -o json \
 for placement_group in $placement_groups; do
     hcloud placement-group delete "$placement_group" 1>/dev/null
 done
+send_notification "cluster deleted"

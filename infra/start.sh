@@ -95,3 +95,4 @@ echo "Waiting for the cluster to be ready..."
 until kubectl get nodes 1>/dev/null 2>&1; do
     sleep 5
 done
+send_notification "the cluster is ready"
