@@ -9,7 +9,8 @@
 	// ask for  the user sops AGE private key and write it to a file
 	"postCreateCommand": "./.devcontainer/postCreate.sh",
 	"containerEnv": {
-		"SOPS_AGE_KEY_FILE": "/home/vscode/.sops/key.txt"
+		"SOPS_AGE_KEY_FILE": "/home/vscode/.sops/key.txt",
+		"TZ": "Europe/Paris"
 	},
 	"remoteUser": "vscode",
 	"customizations": {

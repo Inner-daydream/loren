@@ -6,7 +6,7 @@ send_notification() {
         -d "{\"content\": \"$1\"}" \
         "$DISCORD_WEBHOOK"
 }
-send_notification "deleting the cluster"
+send_notification "deleting the cluster at $(date)"
 echo "Dettaching the bastion from the tailscale network..."
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null  -o ConnectTimeout=10 \
     -i "$SSH_PRIVATE_KEY_PATH" \
@@ -14,8 +14,8 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null  -o ConnectTimeo
     "tailscale logout" >/dev/null 2>&1
 
 echo "Deleting the bastion and the ssh key..."
-terraform -chdir=terraform state rm tailscale_device_subnet_routes.vpc_route 1>/dev/null
-terraform -chdir=terraform destroy -auto-approve 1>/dev/null
+# terraform -chdir=terraform state rm tailscale_device_subnet_routes.vpc_route 1>/dev/null
+# terraform -chdir=terraform destroy -auto-approve 1>/dev/null
 
 
 k3s_servers=$(hcloud server list --selector "cluster == k3s-prod" -o columns=id -o noheader)
@@ -37,4 +37,4 @@ placement_groups=$(hcloud placement-group list -o json \
 for placement_group in $placement_groups; do
     hcloud placement-group delete "$placement_group" 1>/dev/null
 done
-send_notification "cluster deleted"
+send_notification "cluster deleted at $(date)"

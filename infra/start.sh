@@ -19,14 +19,17 @@ send_notification() {
         "$DISCORD_WEBHOOK"
 }
 
-send_notification "starting a new cluster deployment"
+send_notification "starting a new cluster deployment at $(date)"
 # Set up remote vpc access
 echo "creating the vpc.."
 hcloud network create --ip-range "$VPC_SUBNET" --name "$CLUSTER_NAME" 1>/dev/null
 hcloud network add-subnet "$CLUSTER_NAME"  --ip-range "$VPC_SUBNET" --network-zone "$NETWORK_ZONE" --type cloud 1>/dev/null
-
+echo "connecting to the mesh network"
+./connect-mesh.sh "$TAILSCALE_CLIENT_ID" "$TAILSCALE_CLIENT_SECRET"
 echo "deploying the bastion host..."
-terraform -chdir=terraform apply -auto-approve 1>/dev/null
+terraform -chdir=terraform apply -auto-approve \
+    -var tailscale_oauth_client_id=$TAILSCALE_CLIENT_ID \
+    -var tailscale_oauth_client_secret=$TAILSCALE_CLIENT_SECRET  1>/dev/null
 
 # Substitute env vars in config file
 echo "deploying the cluster..."
@@ -95,4 +98,4 @@ echo "Waiting for the cluster to be ready..."
 until kubectl get nodes 1>/dev/null 2>&1; do
     sleep 5
 done
-send_notification "the cluster is ready"
+send_notification "the cluster is ready at $(date)"

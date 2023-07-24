@@ -7,5 +7,4 @@ fi
 echo $SOPS_AGE_KEY > /home/vscode/.sops/key.txt
 WORKSPACE_ROOT=$(pwd)
 cd $WORKSPACE_ROOT/loren-server && npm install
-cd $WORKSPACE_ROOT/infra/terraform && terraform init
-cd $WORKSPACE_ROOT/infra && sudo tailscaled --tun=userspace-networking
+cd $WORKSPACE_ROOT/infra/terraform && direnv exec . terraform init

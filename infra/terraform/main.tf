@@ -130,6 +130,7 @@ resource "tailscale_tailnet_key" "auth_key" {
   ephemeral     = true
   preauthorized = true
   expiry        = 3600
+  tags = [ "tag:prod" ]
 }
 
 # output gateway ip 
