@@ -1,39 +1,67 @@
 FROM ubuntu
+
 ARG TARGETARCH
-ARG SOPS_VERSION=3.7.3
-ENV XDG_CONFIG_HOME=/home/vscode/.config
+ARG USER=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+ARG USER_HOME=/home/$USER
+
+ENV XDG_CONFIG_HOME=$USER_HOME/.config
+
+WORKDIR /tmp
+
 RUN echo "${TARGETARCH}" && set -e && apt-get update && apt-get install -y \
-        curl \
-        git \
-        lsb-release \
-        jq \
-        sudo \
-        wget \
-        age \
-        direnv \
-    && groupadd --gid 1000 vscode \
-    && useradd --uid 1000 --gid vscode --shell /bin/bash --create-home vscode \
-    && echo "vscode ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/01-vscode \
-    && chmod 0440 /etc/sudoers.d/01-vscode \
-    && wget https://github.com/hetznercloud/cli/releases/latest/download/hcloud-linux-${TARGETARCH}.tar.gz \
+    curl \
+    git \
+    lsb-release \
+    gnupg \
+    software-properties-common \
+    jq \
+    sudo \
+    wget \
+    age \
+    direnv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid $USER_GID $USER \
+    && useradd --uid $USER_UID --gid $USER --shell /bin/bash --create-home $USER \
+    && echo "$USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/01-$USER \
+    && chmod 0440 /etc/sudoers.d/01-$USER \
+    && echo 'eval "$(direnv hook bash)"' >> $USER_HOME/.bashrc \
+    && mkdir -p $USER_HOME/.config/direnv $USER_HOME/.sops \
+    && echo '[whitelist]' > $USER_HOME/.config/direnv/direnv.toml \
+    && echo 'prefix = ["/"]' >> $USER_HOME/.config/direnv/direnv.toml \
+    && chown -R $USER:$USER $USER_HOME/.config $USER_HOME/.sops
+
+USER $USER
+
+RUN pwd && wget https://github.com/vitobotta/hetzner-k3s/releases/latest/download/hetzner-k3s-linux-x86_64 \ 
+    && sudo mv hetzner-k3s-linux-x86_64 /usr/local/bin/hetzner-k3s \
+    && chmod +x /usr/local/bin/hetzner-k3s
+
+RUN wget https://github.com/hetznercloud/cli/releases/latest/download/hcloud-linux-${TARGETARCH}.tar.gz \
     && tar -xzf hcloud-linux-${TARGETARCH}.tar.gz \
-    && mv hcloud /usr/local/bin/hcloud \
+    && sudo mv hcloud /usr/local/bin/hcloud \
     && rm hcloud-linux-${TARGETARCH}.tar.gz \
     && chmod +x /usr/local/bin/hcloud \
-    && echo 'source <(hcloud completion bash)' >> /home/vscode/.bashrc \
-    && wget https://github.com/getsops/sops/releases/latest/download/sops-v${SOPS_VERSION}.linux.$TARGETARCH \
-    && mv sops-v${SOPS_VERSION}.linux.$TARGETARCH /usr/local/bin/sops \
-    && chmod +x /usr/local/bin/sops \
-    && curl -fsSL https://tailscale.com/install.sh | sh \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - \
-    && wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \ 
+    && echo 'source <(hcloud completion bash)' >> $USER_HOME/.bashrc
+
+ARG SOPS_VERSION=3.7.3
+RUN wget https://github.com/getsops/sops/releases/latest/download/sops-v${SOPS_VERSION}.linux.$TARGETARCH \
+    && sudo mv sops-v${SOPS_VERSION}.linux.$TARGETARCH /usr/local/bin/sops \
+    && chmod +x /usr/local/bin/sops
+
+RUN curl -fsSL https://tailscale.com/install.sh | sh \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg \ 
     && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list \
-    && apt-get update && sudo apt-get install -y terraform nodejs && rm -rf /var/lib/apt/lists/* \
-    && wget https://github.com/vitobotta/hetzner-k3s/releases/latest/download/hetzner-k3s-linux-x86_64 \ 
-    && mv hetzner-k3s-linux-x86_64 /usr/local/bin/hetzner-k3s \
-    && chmod +x /usr/local/bin/hetzner-k3s \
-    && echo 'eval "$(direnv hook bash)"' >> /home/vscode/.bashrc \
-    && mkdir -p /home/vscode/.config/direnv /home/vscode/.sops \
-    && echo '[whitelist]' > /home/vscode/.config/direnv/direnv.toml \
-    && echo 'prefix = ["/"]' >> /home/vscode/.config/direnv/direnv.toml \
-    && chown -R vscode:vscode /home/vscode/.config /home/vscode/.sops
+    && sudo apt-get update && sudo apt-get install -y terraform && sudo rm -rf /var/lib/apt/lists/* \
+    && echo 'alias tf="terraform"' >> $USER_HOME/.bashrc
+    
+ARG NVM_DIR=$USER_HOME/.nvm
+RUN export NVM_DIR=$NVM_DIR \
+    && mkdir -p $NVM_DIR \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install node
