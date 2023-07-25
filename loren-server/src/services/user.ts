@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthenticationClient, ManagementClient } from 'auth0';
+import { ManagementClient } from 'auth0';
 import isEmail from 'validator/lib/isEmail';
 import { v4 as uuidv4 } from 'uuid';
 

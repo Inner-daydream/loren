@@ -4,7 +4,7 @@ const create = async (req: any, res: any) => {
     // parse json from body
     const { email, password, role } = req.body;
     if (!email || !password || !role) {
-        res.sendStatus(400).json().json({ error: 'Missing fields' });
+        res.status(400).json({ error: 'Missing fields' });
         return;
     }
     try {
@@ -12,11 +12,11 @@ const create = async (req: any, res: any) => {
         res.sendStatus(201);
     } catch (e) {
         if (e instanceof InvalidEmail) {
-            res.sendStatus(400).json({ error: 'Invalid email' });
+            res.status(400).json({ error: 'Invalid email' });
         } else if (e instanceof PasswordTooShort) {
-            res.sendStatus(400).json({ error: 'Password too short' });
+            res.status(400).json({ error: 'Password too short' });
         } else {
-            res.sendStatus(500);
+            res.status(500);
         }
     }
 }
