@@ -20,7 +20,8 @@
 				"ms-vscode.vscode-typescript-next",
 				"VisualStudioExptTeam.vscodeintellicode",
 				"dbaeumer.vscode-eslint",
-				"christian-kohler.npm-intellisense"
+				"christian-kohler.npm-intellisense",
+				"Prisma.prisma"
 			],
 			"settings": {
 				"editor.formatOnSave": true
