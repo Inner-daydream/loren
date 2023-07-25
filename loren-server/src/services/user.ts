@@ -54,6 +54,7 @@ const create = async (email: string, password: string, role: string) => {
         if (e.statusCode === 409) {
             throw new UserAlreadyExists();
         }
+        throw e;
     }
     try {
         await prisma.user.create({
