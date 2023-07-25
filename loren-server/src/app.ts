@@ -1,18 +1,17 @@
 import express from 'express';
 import { router } from './routes';
-
-const { auth } = require('express-openid-connect');
+import { auth } from 'express-openid-connect';
 
 const config = {
   authRequired: false,
   auth0Logout: true,
-  secret: '',
-  baseURL: 'http://test1.bluesail.io:3000',
-  clientID: 'e5irwwjliM7t7WRr9DyAThrRzxMLfPKS',
-  issuerBaseURL: 'https://loren.eu.auth0.com'
+  secret: process.env.OPENID_SECRET,
+  baseURL: process.env.BASE_URL,
+  clientID: process.env.OPENID_CLIENT_ID,
+  issuerBaseURL: process.env.OPENID_ISSUER,
 };
-
 const app = express();
+
 app.use(auth(config));
 app.use(router);
 
