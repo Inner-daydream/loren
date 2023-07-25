@@ -7,18 +7,29 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/app.ts"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/auth0": "^3.3.3",
     "@types/express": "^4.17.17",
+    "@types/node": "^20.4.4",
+    "@types/uuid": "^9.0.2",
+    "@types/validator": "^13.7.17",
     "nodemon": "^3.0.1",
     "prisma": "^5.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "auth0": "^3.6.0",
     "express": "^4.18.2",
-    "express-openid-connect": "^2.16.0"
+    "express-openid-connect": "^2.16.0",
+    "uuid": "^9.0.0",
+    "validator": "^13.9.0"
   }
 }

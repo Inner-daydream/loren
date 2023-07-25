@@ -2,6 +2,7 @@ import express from 'express';
 import { router } from './routes';
 import { auth } from 'express-openid-connect';
 
+
 const config = {
   authRequired: false,
   auth0Logout: true,
@@ -13,7 +14,9 @@ const config = {
 const app = express();
 
 app.use(auth(config));
-app.use(router);
+app.use(express.json());
+app.use('/api', router);
+
 
 
 const port: number = process.env.PORT ? parseInt(process.env.PORT) : 3000;
