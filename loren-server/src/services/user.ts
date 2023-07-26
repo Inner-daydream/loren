@@ -2,13 +2,12 @@ import { PrismaClient } from "@prisma/client";
 import { ManagementClient } from 'auth0';
 import isEmail from 'validator/lib/isEmail';
 import { v4 as uuidv4 } from 'uuid';
-
+import { ROLES } from './constants';
 const prisma = new PrismaClient();
 const management = new ManagementClient({
     domain: process.env.AUTH0_DOMAIN as string,
     token: process.env.AUTH0_TOKEN as string,
 });
-
 export class PasswordTooShort extends Error {
     constructor() {
         super('Password too short');
@@ -47,7 +46,7 @@ const create = async (email: string, password: string, role: string): Promise<vo
             password: password,
             user_id: id,
             app_metadata: {
-                role: role,
+                role: [ROLES.ADMIN],
             },
         });
     } catch (e) {
