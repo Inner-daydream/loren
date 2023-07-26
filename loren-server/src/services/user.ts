@@ -25,7 +25,7 @@ export class UserAlreadyExists extends Error {
     }
 }
 
-const create = async (email: string, password: string, role: string) => {
+const create = async (email: string, password: string, role: string): Promise<void> => {
     // TODO: Properly assign roles based permissions
     if (password.length < 12) {
         throw new PasswordTooShort();
@@ -68,8 +68,6 @@ const create = async (email: string, password: string, role: string) => {
         console.log(e);
         throw e;
     }
-
-
 };
 
 export const UserService = {
