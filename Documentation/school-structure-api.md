@@ -1,10 +1,10 @@
 # API Documentation
 ## Create school
 Create a school, that has no subscription.
-
+  
 Roles:
  - ADMIN
-
+  
 [POST] /api/school
 object 
 ```
