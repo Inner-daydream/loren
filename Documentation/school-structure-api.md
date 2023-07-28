@@ -123,7 +123,7 @@ Roles:
 **[POST] /api/school/teacher**
 ```
 {
-	"email": "<user email>",
+	"user_id": "<user.user_id>",
 }
 ```
 Response:
@@ -138,7 +138,7 @@ Roles:
 **[POST] /api/school/student**
 ```
 {
-	"email": "<user email>",
+	"user_id": "<user.user_id>",
 }
 ```
 Response:
