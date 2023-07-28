@@ -102,11 +102,12 @@ Create, and attach the student to the given school. The user is active by defaul
 Roles:
  - NONE
   
-**[POST] /api/school?code={school code}**
+**[POST] /api/registration**
 ```
 {
 	"email": "<user email>",
-	"password": "<user password>"
+	"password": "<user password>",
+	"schoolCode":"<school code>"
 }
 ```
 Response:
