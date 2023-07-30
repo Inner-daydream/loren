@@ -17,7 +17,20 @@ async function main() {
             role: 'teacher',
         },
     })
-    console.log({ jean, jeanne })
+    const school = await prisma.school.upsert({
+        where: { name: 'Loren' },
+        update: {},
+        create: {
+            name: 'Loren',
+            users: {
+                connect: [
+                    { id: jeanne.id },
+                    { id: jean.id },
+                ],
+            },
+        },
+    })
+    console.log({ jean, jeanne, school })
 }
 main()
     .then(async () => {

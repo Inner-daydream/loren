@@ -16,21 +16,22 @@ model User {
   role      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  School    School?  @relation(fields: [schoolId], references: [id])
+  school    School?  @relation(fields: [schoolId], references: [id])
   schoolId  String?
   isActive  Boolean @default(true)
 }
 
 model School {
-  id           String        @id @default(uuid())
-  name         String        @unique
-  phone        String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  teacherCode  String        @unique @default(uuid())
-  studentCode  String        @unique @default(uuid())
-  users        User[]
-  Subscription Subscription?
+  id               String            @id @default(uuid())
+  name             String            @unique
+  phone            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  teacherCode      String            @unique @default(uuid())
+  studentCode      String            @unique @default(uuid())
+  users            User[]
+  subscription     Subscription?
+  checkoutSessions CheckoutSession[]
 }
 
 model Subscription {
@@ -39,6 +40,15 @@ model Subscription {
   updatedAt DateTime @updatedAt
   startDate DateTime
   endDate   DateTime
-  School    School   @relation(fields: [schoolId], references: [id])
+  school    School   @relation(fields: [schoolId], references: [id])
+  schoolId  String   @unique
+}
+
+model CheckoutSession {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessionId String   @unique
+  school    School   @relation(fields: [schoolId], references: [id])
   schoolId  String   @unique
 }
