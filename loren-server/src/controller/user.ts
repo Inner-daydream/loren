@@ -1,6 +1,6 @@
 import { UserService, InvalidEmail, PasswordTooShort } from '../services/user';
-
-const create = async (req: any, res: any) => {
+import { Request, Response, NextFunction } from 'express';
+const create = async (req: Request, res: Response, next: NextFunction) => {
     // parse json from body
     const { email, password, role } = req.body;
     if (!email || !password || !role) {

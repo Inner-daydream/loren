@@ -7,6 +7,7 @@ export function authorizationMiddleware(allowedRoles: string[]) {
                 next()
             }
         }
+        req.user = req.oidc.user
         res.status(401).send()
 
     }
