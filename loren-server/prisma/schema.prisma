@@ -18,7 +18,6 @@ model User {
   updatedAt DateTime @updatedAt
   school    School?  @relation(fields: [schoolId], references: [id])
   schoolId  String?
-  isActive  Boolean @default(true)
 }
 
 model School {
@@ -29,8 +28,9 @@ model School {
   updatedAt        DateTime          @updatedAt
   teacherCode      String            @unique @default(uuid())
   studentCode      String            @unique @default(uuid())
+  allowedInstances Int               @default(0)
   users            User[]
-  subscription     Subscription?
+  subscriptions    Subscription[]
   checkoutSessions CheckoutSession[]
 }
 
@@ -38,10 +38,11 @@ model Subscription {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  quantity  Int
   startDate DateTime
   endDate   DateTime
   school    School   @relation(fields: [schoolId], references: [id])
-  schoolId  String   @unique
+  schoolId  String
 }
 
 model CheckoutSession {
@@ -50,5 +51,5 @@ model CheckoutSession {
   updatedAt DateTime @updatedAt
   sessionId String   @unique
   school    School   @relation(fields: [schoolId], references: [id])
-  schoolId  String   @unique
+  schoolId  String
 }

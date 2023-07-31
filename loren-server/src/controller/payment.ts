@@ -1,6 +1,7 @@
 import { PaymentService } from '../services/payment';
 import { Request, Response, NextFunction } from 'express';
 
+
 const createCheckoutSession = async (req: Request, res: Response, next: NextFunction) => {
 
     // schoolId is expected from the auth middleware, but it doesn't implement this yet, for debugging purposes, we get it from the request.
@@ -18,13 +19,25 @@ const createCheckoutSession = async (req: Request, res: Response, next: NextFunc
     }
 }
 
-// webhook
+
+
+
+
+
 const handleSuccessfulCheckout = (req: Request, res: Response, next: NextFunction) => {
     const session = req.body.data.object;
     console.log("session completed: ", session.id);
     PaymentService.handleSuccessfulCheckout(session.id);
 }
 
+const handleExpiredSubscriptions = (req: Request, res: Response, next: NextFunction) => {
+    const session = req.body.data.object;
+    console.log("session expired: ", session.id);
+    PaymentService.handleExpiredSubscriptions(session.id);
+}
+
 export const PaymentController = {
     createCheckoutSession,
+    handleSuccessfulCheckout,
+    handleExpiredSubscriptions,
 };

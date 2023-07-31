@@ -15,4 +15,7 @@ router.get('/exemple', authorizationMiddleware([ROLES.ADMIN]), (req, res, next) 
 })
 
 router.post('/user', UserController.create);
+
 router.post('/payment/checkout', PaymentController.createCheckoutSession);
+router.post('/payment/checkout/success', PaymentController.handleSuccessfulCheckout);
+router.post('/payment/checkout/expired', PaymentController.handleExpiredSubscriptions);
