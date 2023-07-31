@@ -20,10 +20,6 @@ const createCheckoutSession = async (req: Request, res: Response, next: NextFunc
 }
 
 
-
-
-
-
 const handleSuccessfulCheckout = (req: Request, res: Response, next: NextFunction) => {
     const session = req.body.data.object;
     console.log("session completed: ", session.id);

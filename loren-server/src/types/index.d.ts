@@ -7,3 +7,8 @@ interface AuthRequest extends Request {
         user?: User;
     };
 }
+export type jsonResponse = {
+    error?: string,
+    message?: string,
+    debug?: any
+}
