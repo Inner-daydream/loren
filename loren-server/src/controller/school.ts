@@ -1,20 +1,21 @@
 import { SchoolService } from "../services/school";
-import { MissingFilds } from "./Exceptions/MissingFildsException";
+import { Request, Response, NextFunction } from 'express';
+import { MissingFields } from "./exceptions/MissingFildsException";
 
-
-const create = async (req: any, res: any, next: any) => {
+const create = async (req: Request, res: Response, next: NextFunction) => {
     const { name, phone } = req.body;
-
     if (!name || !phone) {
-        return next(new MissingFilds());
+        return next(new MissingFields());
     }
     try {
-        const test = await SchoolService.create(req.oidc.user.sub, name, phone);
-        return res.send(test)
+        await SchoolService.create(name, phone);
+        res.sendStatus(201);
     } catch (e) {
-        next(e)
+        console.log(e);
+        res.status(500);
     }
 }
+
 export const SchoolController = {
-    create,
+    create
 }

@@ -72,8 +72,6 @@ const addSubscription = async (schoolId: string, startDate: Date, endDate: Date)
 
 };
 
-const stripeSubscription = {
-
 
 export const SchoolService = {
     create,

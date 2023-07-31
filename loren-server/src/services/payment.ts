@@ -84,6 +84,10 @@ const updateTotalQuantity = async (schoolId: string): Promise<number> => {
     let totalQuantity: number;
     if (!subscriptions) {
         totalQuantity = 0;
+        if (env.DEBUG) {
+            console.log('No active subscriptions found for school ' + schoolId);
+            console.log('subscriptions value: ' + subscriptions);
+        }
     } else {
         totalQuantity = subscriptions.reduce((acc, curr) => acc + curr.quantity, 0);
     }
