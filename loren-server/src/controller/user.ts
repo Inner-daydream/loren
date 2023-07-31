@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserService } from '../services/user';
-import { ROLES } from './../services/constants';
+import { ROLES } from '../constants';
 import { MissingFields } from './exceptions/MissingFildsException';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
