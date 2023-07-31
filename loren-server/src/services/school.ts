@@ -60,19 +60,6 @@ const create = async (user_id: string, name: string, phone?: string) => {
 
 };
 
-const addSubscription = async (schoolId: string, startDate: Date, endDate: Date) => {
-
-    const subscription = await prisma.subscription.create({
-        data: {
-            schoolId: schoolId,
-            startDate: startDate,
-            endDate: endDate,
-        },
-    });
-
-};
-
-
 export const SchoolService = {
     create,
 };
