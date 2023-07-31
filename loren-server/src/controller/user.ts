@@ -5,12 +5,12 @@ import { MissingFields } from './exceptions/MissingFildsException';
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
     // parse json from body
-    const { email, password } = req.body;
+    const { email, password, joinCode } = req.body;
     if (!email || !password) {
         return next(new MissingFields());
     }
     try {
-        await UserService.create(email, password, ROLES.ADMIN);
+        await UserService.create(email, password, joinCode);
         res.sendStatus(201);
     } catch (e) {
         next(e)
