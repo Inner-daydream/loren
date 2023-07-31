@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, School, User } from '@prisma/client';
 
 const prisma = new PrismaClient();
 export class SchoolAlreadyExist extends Error {
@@ -13,50 +13,54 @@ export class UserAlreadyHasASchool extends Error {
         super('Logged user already has a school');
     }
 }
-async function userHasSchool(user_id: string) {
-    const user = await prisma.user.findUniqueOrThrow({
-        where: {
-            id: user_id
-        }
-    });
-    console.log(user.schoolId != null);
-    return user.schoolId != null;
+export class UserNotFound extends Error {
+    constructor(userID: string) {
+        super('User not found: ' + userID);
+    }
 }
-const create = async (user_id: string, name: string, phone?: string) => {
+async function userHasSchool(userID: string): Promise<Boolean> {
     try {
-        let userId: string = user_id.substring(6);
-        const hasSchool = await !userHasSchool(userId);
-        console.log(!hasSchool)
-        if (!hasSchool) {
-            console.log("adding school...");
-
-            const school = await prisma.school.create({
-                data: {
-                    name: name,
-                    phone: phone,
-                },
-            });
-            const user = await prisma.user.update({
-                where: {
-                    id: userId
-                },
-                data: {
-                    schoolId: school.id
-                }
-            });
-
-            console.log(school)
-            return school;
-        } else {
-            throw new UserAlreadyHasASchool();
-        }
-
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: userID
+            }
+        });
+        const schoolID = user?.schoolId;
+        return schoolID !== null && schoolID !== undefined
     } catch (e) {
-        if (e.statusCode === 409) {
-            throw new SchoolAlreadyExist();
+        if (e.code !== 'P2025') {
+            throw new UserNotFound(userID);
         }
         throw e;
     }
+
+
+}
+const create = async (userID: string, name: string, phone?: string): Promise<School> => {
+    let userId: string = userID;
+    const hasSchool = await userHasSchool(userId);
+    if (hasSchool) {
+        throw new UserAlreadyHasASchool();
+    }
+    const school = await prisma.school.create({
+        data: {
+            name: name,
+            phone: phone,
+        },
+    });
+    await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            schoolId: school.id
+        }
+    });
+
+    console.log(school)
+    return school;
+
+
 
 };
 
