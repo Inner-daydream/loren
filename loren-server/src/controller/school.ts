@@ -4,14 +4,15 @@ import { MissingFields } from "./exceptions/MissingFildsException";
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
     const { name, phone } = req.body;
+    const userID = (req.oidc?.user?.sub as string).substring(6);
     if (!name || !phone) {
         return next(new MissingFields());
     }
     try {
-        await SchoolService.create(name, phone);
+        await SchoolService.create(userID, name, phone);
         res.sendStatus(201);
     } catch (e) {
-        console.log(e);
+        next(e);
         res.status(500);
     }
 }
