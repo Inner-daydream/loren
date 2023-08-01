@@ -21,14 +21,6 @@ let config: ConfigParams = {
     },
 };
 
-// if (env.DEBUG) {
-//     config.session = {
-//         cookie: {
-//             secure: false,
-//             httpOnly: false,
-//         },
-//     }
-// }
 app.use(auth(config));
 app.use(express.json());
 app.use('/api', router);
