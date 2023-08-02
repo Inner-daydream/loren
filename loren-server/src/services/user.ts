@@ -4,6 +4,7 @@ import isEmail from 'validator/lib/isEmail';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from "../env";
 import { ROLES } from '../constants';
+import { UserController } from "../controller/user";
 const prisma = new PrismaClient();
 const management = new ManagementClient({
     domain: env.AUTH0_DOMAIN,
@@ -22,6 +23,11 @@ export class InvalidEmail extends Error {
 export class UserAlreadyExists extends Error {
     constructor() {
         super('User already exists');
+    }
+}
+export class UserNotFound extends Error {
+    constructor() {
+        super('User not found');
     }
 }
 export class InvalidJoinCode extends Error {
@@ -73,16 +79,6 @@ const create = async (email: string, password: string, joinCode?: string): Promi
     if (!isEmail(email)) {
         throw new InvalidEmail();
     }
-    await prisma.user.findFirst({
-        where: {
-            email: email,
-        },
-    }).then((user) => {
-        if (user) {
-            console.log("user already exists")
-            throw new UserAlreadyExists();
-        }
-    });
     const id = uuidv4();
     try {
         await management.createUser({
@@ -96,7 +92,6 @@ const create = async (email: string, password: string, joinCode?: string): Promi
         });
 
     } catch (e) {
-        console.log(e);
         if (e.statusCode === 409) {
             throw new UserAlreadyExists();
         }
@@ -111,11 +106,14 @@ const create = async (email: string, password: string, joinCode?: string): Promi
             },
         });
     } catch (e) {
-        console.log(e);
+        if (e.code = 'P2002') {
+            throw new UserAlreadyExists();
+        }
         throw e;
     }
 
 };
+
 
 export const UserService = {
     create,
