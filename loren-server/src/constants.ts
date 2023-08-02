@@ -4,3 +4,7 @@ export const ROLES = {
     STUDENT: "STUDENT"
 } as const;
 
+export enum SIGNAL {
+    SIGINT = 'SIGINT',
+    SIGTERM = 'SIGTERM',
+}
