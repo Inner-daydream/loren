@@ -84,4 +84,5 @@ const generateInvite = async (schoolID: string, role: string, expiryDate?: Date)
 
 export const SchoolService = {
     create,
+    generateInvite
 };

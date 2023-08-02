@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { ManagementClient } from 'auth0';
 import isEmail from 'validator/lib/isEmail';
 import { v4 as uuidv4 } from 'uuid';
@@ -47,7 +47,7 @@ const joinSchool = async (userId: string, schoolId: string, role: string): Promi
     }
 };
 
-const create = async (email: string, password: string, joinCode?: string): Promise<void> => {
+const create = async (email: string, password: string, joinCode?: string): Promise<User> => {
     let role: string;
     let schoolId: string | undefined;
     if (joinCode) {
@@ -68,7 +68,7 @@ const create = async (email: string, password: string, joinCode?: string): Promi
     }
 
     if (password.length < 12) {
-        throw new PasswordTooShort();
+        //throw new PasswordTooShort();
     }
     if (!isEmail(email)) {
         throw new InvalidEmail();
@@ -94,6 +94,7 @@ const create = async (email: string, password: string, joinCode?: string): Promi
                 role: ROLES.ADMIN,
             },
         });
+
     } catch (e) {
         console.log(e);
         if (e.statusCode === 409) {
@@ -102,7 +103,7 @@ const create = async (email: string, password: string, joinCode?: string): Promi
         throw e;
     }
     try {
-        await prisma.user.create({
+        return await prisma.user.create({
             data: {
                 id: id,
                 email: email,
@@ -113,9 +114,7 @@ const create = async (email: string, password: string, joinCode?: string): Promi
         console.log(e);
         throw e;
     }
-    if (schoolId) {
-        await joinSchool(id, schoolId, role);
-    }
+
 };
 
 export const UserService = {
