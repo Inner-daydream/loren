@@ -1,6 +1,6 @@
 import { SchoolService } from "../services/school";
 import { Request, Response, NextFunction } from 'express';
-import { MissingFields } from "./exceptions";
+import { MissingFields } from "../exceptions";
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
     const { name, phone } = req.body;

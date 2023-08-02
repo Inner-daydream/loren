@@ -1,4 +1,5 @@
-import { PrismaClient, School, User } from '@prisma/client';
+import { PrismaClient, School } from '@prisma/client';
+import { ROLES } from '../constants';
 
 const prisma = new PrismaClient();
 export class SchoolAlreadyExist extends Error {
@@ -56,13 +57,30 @@ const create = async (userID: string, name: string, phone?: string): Promise<Sch
             schoolId: school.id
         }
     });
-
-    console.log(school)
+    generateInvite(school.id, ROLES.TEACHER);
+    generateInvite(school.id, ROLES.STUDENT);
     return school;
 
 
 
 };
+
+const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
+    try {
+        const invite = await prisma.schoolInvite.create({
+            data: {
+                schoolId: schoolID,
+                role: role,
+                expiresAt: expiryDate
+            }
+        });
+        return invite.code;
+    } catch (e) {
+        console.log(e);
+        throw e;
+    }
+
+}
 
 export const SchoolService = {
     create,

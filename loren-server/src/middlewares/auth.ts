@@ -1,6 +1,7 @@
 import { NextFunction, Response } from "express"
 import { env } from "../env"
-import type { AuthRequest, jsonResponse } from "../types"
+import type { AuthRequest } from "../types"
+import type { jsonResponse } from "../responses"
 
 export function authorizationMiddleware(allowedRoles: string[]) {
     return (req: AuthRequest, res: Response, next: NextFunction) => {

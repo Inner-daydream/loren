@@ -51,23 +51,17 @@ const create = async (email: string, password: string, joinCode?: string): Promi
     let role: string;
     let schoolId: string | undefined;
     if (joinCode) {
-        const school = await prisma.school.findFirst({
+        const invite = await prisma.schoolInvite.findFirst({
             where: {
-                OR: [
-                    { teacherCode: joinCode },
-                    { studentCode: joinCode },
-                ],
+                code: joinCode,
             },
         });
-        if (!school) {
+        if (!invite) {
             throw new InvalidJoinCode();
         }
-        schoolId = school.id;
-        if (school.teacherCode === joinCode) {
-            role = ROLES.TEACHER;
-        } else {
-            role = ROLES.STUDENT;
-        }
+        schoolId = invite.schoolId;
+        role = invite.role;
+
     } else {
         role = ROLES.ADMIN;
         schoolId = undefined;

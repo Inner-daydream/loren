@@ -7,3 +7,9 @@ export default class DefaultResponse {
         this.message = message;
     }
 }
+
+export type jsonResponse = {
+    error?: string,
+    message?: string,
+    debug?: any
+}

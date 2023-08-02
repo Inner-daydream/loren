@@ -26,12 +26,11 @@ model School {
   phone            String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  teacherCode      String            @unique @default(nanoid(12))
-  studentCode      String            @unique @default(nanoid(12))
   allowedInstances Int               @default(0)
   users            User[]
   subscriptions    Subscription[]
   checkoutSessions CheckoutSession[]
+  schoolInvite     schoolInvite[]
 }
 
 model Subscription {
@@ -52,4 +51,15 @@ model CheckoutSession {
   sessionId String   @unique
   school    School   @relation(fields: [schoolId], references: [id])
   schoolId  String
+}
+
+model schoolInvite {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  code      String    @unique @default(nanoid(12))
+  school    School    @relation(fields: [schoolId], references: [id])
+  schoolId  String
+  expiresAt DateTime?
+  role      String
 }
