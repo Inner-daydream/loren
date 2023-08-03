@@ -94,9 +94,9 @@ export const errorHandler = (error: Error, res?: Response) => {
             userError.isCatastrophic && handleFatalError(userError);
         }
         if (!errorLogged) {
-            fireMetrics(userError, ERROR_LEVEL.OPERATIONAL);
-            logger.debug(userError.message);
-            logger.trace(userError.stack);
+            fireMetrics(error, ERROR_LEVEL.OPERATIONAL);
+            logger.debug(error.message);
+            logger.trace(error.stack);
         }
 
     } else {
