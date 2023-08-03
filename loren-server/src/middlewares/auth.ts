@@ -11,16 +11,9 @@ export function authorizationMiddleware(allowedRoles: string[]) {
                 return
             }
         }
-        let response: jsonResponse = {
+        res.status(401).json({
             error: 'Unauthorized',
             message: 'You are not authorized to access this resource',
-        }
-        if (env.DEBUG && req.oidc?.isAuthenticated()) {
-            response.debug = {
-                allowedRoles: allowedRoles,
-                user: req.oidc?.user,
-            }
-        }
-        res.status(401).json(response)
+        })
     }
 }

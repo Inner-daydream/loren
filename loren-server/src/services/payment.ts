@@ -1,7 +1,8 @@
 import { PrismaClient, Subscription } from '@prisma/client';
 import { env } from '../env';
 import Stripe from 'stripe';
-
+import { logger } from '../logger';
+import { AppError } from '../error';
 const prisma = new PrismaClient();
 const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     // @ts-ignore
@@ -12,10 +13,20 @@ const plans = {
     'basic': env.STRIPE_BASIC_PRICE_ID,
 } as const;
 
-const addSubscription = async (schoolId: string, startDate: Date, endDate: Date, quantity: number): Promise<boolean> => {
+export class CheckoutError extends AppError {
+    constructor(message: string, sessionID?: string) {
+        if (sessionID) {
+            message += ' (Session ID: ' + sessionID + ')';
+        }
+        super(message);
+        this.isImportant = true;
+    }
+}
+
+const addSubscription = async (schoolID: string, startDate: Date, endDate: Date, quantity: number): Promise<boolean> => {
     const subscription = await prisma.subscription.create({
         data: {
-            schoolId: schoolId,
+            schoolId: schoolID,
             startDate: startDate,
             endDate: endDate,
             quantity: quantity,
@@ -27,41 +38,65 @@ const addSubscription = async (schoolId: string, startDate: Date, endDate: Date,
     return true;
 };
 
-// TODO: improve error handling once we have settled on a proper error handling strategy
-const createCheckoutSession = async (plan: keyof typeof plans, quantity: number, schoolId: string): Promise<string> => {
-    const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-            {
-                price: plans[plan],
-                quantity: quantity,
-            },
-        ],
-        mode: 'subscription',
-        success_url: `${env.CLIENT_URL}/checkout/success`,
-        cancel_url: `${env.CLIENT_URL}/checkout/cancel`,
-    })
-
-    if (!session.url) {
-        throw new Error('Could not create session');
+export class PaymentUnavailableError extends AppError {
+    constructor(message: string) {
+        super(message);
+        this.isImportant = true;
     }
-    console.log('session:', session, 'url:', session.url)
 
+}
+
+interface StripeError {
+    type: string,
+    message: string,
+}
+const handleStripeError = (err: StripeError): void => {
+    switch (err.type) {
+        case 'StripeInvalidRequestError':
+        case 'StripeAPIError':
+        case 'StripeConnectionError':
+        case 'StripeAuthenticationError':
+        case 'StripePermissionError':
+        case 'StripeRateLimitError':
+            throw new PaymentUnavailableError('Payment service unavailable: ' + err.type + ' - ' + err.message);
+        default:
+            throw err;
+    }
+};
+const createCheckoutSession = async (plan: keyof typeof plans, quantity: number, schoolID: string): Promise<string> => {
+    let session: Stripe.Checkout.Session;
     try {
-        await prisma.checkoutSession.create({
-            data: {
-                sessionId: session.id,
-                schoolId: schoolId,
-            },
+        session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price: plans[plan],
+                    quantity: quantity,
+                },
+            ],
+            mode: 'subscription',
+            success_url: `${env.CLIENT_URL}/checkout/success`,
+            cancel_url: `${env.CLIENT_URL}/checkout/cancel`,
         });
-    } catch (e) {
-        console.log(e);
+    }
+    catch (e) {
+        handleStripeError(e);
         throw e;
     }
+
+    if (!session.url) {
+        throw new CheckoutError('Could not create checkout session', session.id);
+    }
+    await prisma.checkoutSession.create({
+        data: {
+            sessionId: session.id,
+            schoolId: schoolID,
+        },
+    });
     return session.url
 };
 
-const getActiveSubscriptions = async (schoolId: string) => {
+const getActiveSubscriptions = async (schoolId: string): Promise<Subscription[]> => {
     const currentDate = new Date();
     const subscriptions: Subscription[] = await prisma.subscription.findMany({
         where: {
@@ -75,70 +110,80 @@ const getActiveSubscriptions = async (schoolId: string) => {
         },
     });
     return subscriptions;
-
 };
 
 // update the total quantity of allowed instances for a school
-const updateTotalQuantity = async (schoolId: string): Promise<number> => {
-    const subscriptions = await getActiveSubscriptions(schoolId);
+const updateTotalQuantity = async (schoolID: string): Promise<number> => {
+    const subscriptions = await getActiveSubscriptions(schoolID);
     let totalQuantity: number;
-    if (!subscriptions) {
+    if (subscriptions.length === 0) {
         totalQuantity = 0;
-        if (env.DEBUG) {
-            console.log('No active subscriptions found for school ' + schoolId);
-            console.log('subscriptions value: ' + subscriptions);
-        }
     } else {
         totalQuantity = subscriptions.reduce((acc, curr) => acc + curr.quantity, 0);
     }
-    await prisma.school.update({
-        where: {
-            id: schoolId,
-        },
-        data: {
-            allowedInstances: totalQuantity,
-        },
-    });
-    return totalQuantity;
+    try {
+        await prisma.school.update({
+            where: {
+                id: schoolID,
+            },
+            data: {
+                allowedInstances: totalQuantity,
+            },
+        });
+        return totalQuantity;
+    }
+    catch (e) {
+        if (e.code === 'P2025') {
+            throw new CheckoutError('Could not find school to update sub count. schoolID: ' + schoolID);
+        }
+        throw e;
+    }
+
 };
 
-export class CheckoutError extends Error {
-    constructor(message: string, sessionId: string) {
-        super(message + '\n-  Session ID: ' + sessionId);
+
+const handleSuccessfulCheckout = async (sessionID: string): Promise<void> => {
+    let session: Stripe.Checkout.Session;
+    try {
+        session = await stripe.checkout.sessions.retrieve(sessionID);
+    } catch (e) {
+        handleStripeError(e);
+        throw e;
     }
-}
-const handleSuccessfulCheckout = async (sessionId: string): Promise<void> => {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
     if (session.payment_status !== 'paid') {
-        throw new CheckoutError('Payment has not been completed yet', sessionId);
+        throw new CheckoutError('Payment has not been completed yet', sessionID);
     }
     const checkoutSession = await prisma.checkoutSession.findUnique({
         where: {
-            sessionId: sessionId,
+            sessionId: sessionID,
         },
     });
     if (!checkoutSession) {
-        throw new CheckoutError('Could not find checkout session', sessionId);
+        throw new CheckoutError('Could not find checkout session', sessionID);
     }
-    const subscriptionId = session.subscription as string;
-    if (!subscriptionId) {
-        throw new CheckoutError('Could not find subscription ID', sessionId);
+    if (!session.subscription) {
+        throw new CheckoutError('Could not find subscription ID', sessionID);
     }
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscriptionID = session.subscription as string;
+    let subscription: Stripe.Subscription;
+    try {
+        subscription = await stripe.subscriptions.retrieve(subscriptionID);
+    } catch (e) {
+        handleStripeError(e);
+        throw e;
+    }
     if (!subscription) {
-        throw new CheckoutError('Could not find subscription', sessionId);
+        throw new CheckoutError('Could not find subscription', sessionID);
+    }
+    if (!subscription.items.data[0].quantity) {
+        throw new CheckoutError('Could not find quantity', sessionID);
     }
     const quantity = subscription.items.data[0].quantity;
-    if (!quantity) {
-        throw new CheckoutError('Could not find quantity', sessionId);
-    }
     const startDate = new Date(subscription.current_period_start * 1000);
     const endDate = new Date(subscription.current_period_end * 1000);
     const schoolId = checkoutSession.schoolId;
     addSubscription(schoolId, startDate, endDate, quantity);
-    console.log('Added subscription for school ' + schoolId + ' from ' + startDate + ' to ' + endDate);
-    const allowedQuantity = await updateTotalQuantity(schoolId);
-    console.log('Updated total quantity for school ' + schoolId + ' to ' + allowedQuantity);
+    await updateTotalQuantity(schoolId);
 };
 
 const handleExpiredSubscriptions = async (sessionId: string): Promise<void> => {
@@ -158,8 +203,7 @@ const handleExpiredSubscriptions = async (sessionId: string): Promise<void> => {
     }
 
     const schoolId = subscription.schoolId;
-    const allowedQuantity = updateTotalQuantity(schoolId);
-    console.log('Updated total quantity for school ' + schoolId + ' to ' + allowedQuantity);
+    updateTotalQuantity(schoolId);
 };
 
 
