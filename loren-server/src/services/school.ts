@@ -14,6 +14,11 @@ export class UserAlreadyHasASchool extends Error {
         super('Logged user already has a school');
     }
 }
+export class UserDoesNotHaveASchool extends Error {
+    constructor() {
+        super('Logged user does not have a school');
+    }
+}
 export class UserNotFound extends Error {
     constructor(userID: string) {
         super('User not found: ' + userID);
@@ -65,6 +70,26 @@ const create = async (userID: string, name: string, phone?: string): Promise<Sch
 
 };
 
+const get = async (userID: string) => {
+    try {
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: userID
+            }
+        });
+        if (user.schoolId == null) {
+            throw new UserDoesNotHaveASchool();
+        }
+        return await prisma.school.findUniqueOrThrow({
+            where: {
+                id: user.schoolId
+            }
+        })
+    } catch (e) {
+        throw e;
+    }
+}
+
 const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
     try {
         const invite = await prisma.schoolInvite.create({
@@ -84,5 +109,6 @@ const generateInvite = async (schoolID: string, role: string, expiryDate?: Date)
 
 export const SchoolService = {
     create,
-    generateInvite
+    generateInvite,
+    get
 };
