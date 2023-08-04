@@ -1,5 +1,7 @@
 import { PrismaClient, School } from '@prisma/client';
 import { ROLES } from '../constants';
+import validator from 'validator/';
+
 import { UserNotFound } from './user';
 const prisma = new PrismaClient();
 export class SchoolAlreadyExist extends Error {
@@ -12,6 +14,11 @@ export class UserAlreadyHasASchool extends Error {
     constructor(schoolID: string, message?: string) {
         message = message || 'User already has a school';
         super(message + ': ' + schoolID);
+    }
+}
+export class PhoneNumberIsNotValid extends Error {
+    constructor(phoneNumber: string) {
+        super("Given phone number is not Valid :" + phoneNumber);
     }
 }
 export class UserDoesNotHaveASchool extends Error {
@@ -40,6 +47,11 @@ async function userHasSchool(userID: string): Promise<Boolean> {
 }
 const create = async (userID: string, name: string, phone?: string): Promise<School> => {
     let userId: string = userID;
+    if (phone) {
+        if (!validator.isMobilePhone(phone, "fr-FR")) {
+            throw new PhoneNumberIsNotValid(phone);
+        }
+    }
     const hasSchool = await userHasSchool(userId);
     if (hasSchool) {
         throw new UserAlreadyHasASchool(userId);
