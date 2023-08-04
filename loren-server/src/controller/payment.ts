@@ -2,7 +2,7 @@ import { PaymentService } from '../services/payment';
 import { Request, Response, NextFunction } from 'express';
 import zod from 'zod';
 
-const CreateSchema = zod.object({
+const createSchema = zod.object({
     plan: zod.string(),
     quantity: zod.number(),
     schoolId: zod.string(),
@@ -11,7 +11,7 @@ const CreateSchema = zod.object({
 const createCheckoutSession = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
-        CreateSchema.parse(req.body);
+        createSchema.parse(req.body);
     } catch (e) {
         return next(e);
     }

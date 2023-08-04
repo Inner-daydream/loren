@@ -3,7 +3,7 @@ import { UserService } from '../services/user';
 import zod from 'zod';
 
 
-const CreateSchema = zod.object({
+const createSchema = zod.object({
     email: zod.string(),
     password: zod.string(),
     joinCode: zod.optional(zod.string()),
@@ -11,10 +11,9 @@ const CreateSchema = zod.object({
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        CreateSchema.parse(req.body);
+        createSchema.parse(req.body);
     } catch (e) {
-        next(e);
-        return;
+        return next(e);
     }
     const { email, password, joinCode } = req.body;
     try {
@@ -23,7 +22,7 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
             message: 'User created successfully',
         });
     } catch (e) {
-        next(e)
+        return next(e)
     }
 }
 
