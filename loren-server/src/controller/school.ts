@@ -19,7 +19,8 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 const get = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userID = (req.oidc?.user?.sub as string).substring(6);
-        return await SchoolService.get(userID);
+        const school = await SchoolService.get(userID);
+        res.status(200).json(school)
     } catch (e) {
         next(e);
         res.status(500);
