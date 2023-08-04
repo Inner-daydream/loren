@@ -13,5 +13,5 @@ export const env = cleanEnv(process.env, {
     STRIPE_BASIC_PRICE_ID: str({ desc: 'The ID of the basic plan in Stripe' }),
     STRIPE_SECRET_KEY: str({ desc: 'The secret key of the Stripe account' }),
     STRIPE_API_VERSION: str({ desc: 'The API version of Stripe (https://stripe.com/docs/api/versioning)' }),
-    DEBUG: bool({ desc: 'Whether to run in debug mode', default: false }),
+    LOG_LEVEL: str({ desc: 'The log level', default: 'info' }),
 });

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { NextFunction, Router, Response } from 'express';
 
 import type { AuthRequest } from './types/index.d.ts';
 import { ROLES } from './constants';
@@ -6,12 +6,9 @@ import { ROLES } from './constants';
 import { UserController } from './controller/user';
 import { SchoolController } from './controller/school';
 import { PaymentController } from './controller/payment';
-
-import { errorHandler } from './middlewares/error';
 import { authorizationMiddleware } from './middlewares/auth';
 
 export const router = Router();
-router.use(errorHandler());
 
 router.get('/', (req: AuthRequest, res) => {
   res.send(req.oidc?.isAuthenticated() ? 'Logged in' : 'Logged out');

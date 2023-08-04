@@ -1,12 +1,11 @@
 import { PrismaClient, School } from '@prisma/client';
 import { ROLES } from '../constants';
-
+import { UserNotFound } from './user';
 const prisma = new PrismaClient();
 export class SchoolAlreadyExist extends Error {
-    status: number
-    constructor() {
-        super('School already exists');
-        this.status = 409;
+    constructor(schoolID: string, message?: string) {
+        message = message || 'School already exists';
+        super(message + ': ' + schoolID);
     }
 }
 export class UserAlreadyHasASchool extends Error {
@@ -20,8 +19,9 @@ export class UserDoesNotHaveASchool extends Error {
     }
 }
 export class UserNotFound extends Error {
-    constructor(userID: string) {
-        super('User not found: ' + userID);
+    constructor(schoolID: string, message?: string) {
+        message = message || 'User already has a school';
+        super(message + ': ' + schoolID);
     }
 }
 async function userHasSchool(userID: string): Promise<Boolean> {
@@ -46,7 +46,7 @@ const create = async (userID: string, name: string, phone?: string): Promise<Sch
     let userId: string = userID;
     const hasSchool = await userHasSchool(userId);
     if (hasSchool) {
-        throw new UserAlreadyHasASchool();
+        throw new UserAlreadyHasASchool(userID);
     }
     const school = await prisma.school.create({
         data: {
@@ -92,19 +92,34 @@ const get = async (userID: string) => {
 
 const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
     try {
-        const invite = await prisma.schoolInvite.create({
+        await prisma.user.update({
+            where: {
+                id: userId
+            },
             data: {
-                schoolId: schoolID,
-                role: role,
-                expiresAt: expiryDate
+                schoolId: school.id
             }
         });
-        return invite.code;
     } catch (e) {
-        console.log(e);
+        if (e.code === 'P2025') {
+            throw new UserNotFound(userID);
+        }
         throw e;
     }
+    generateInvite(school.id, ROLES.TEACHER);
+    generateInvite(school.id, ROLES.STUDENT);
+    return school;
+};
 
+const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
+    const invite = await prisma.schoolInvite.create({
+        data: {
+            schoolId: schoolID,
+            role: role,
+            expiresAt: expiryDate
+        }
+    });
+    return invite.code;
 }
 
 export const SchoolService = {
