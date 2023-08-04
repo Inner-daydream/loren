@@ -1,6 +1,6 @@
 import { InvalidInvite, PasswordTooShort, InvalidEmail, UserAlreadyExists, UserNotFound } from "./services/user";
 import { PaymentUnavailableError, CheckoutError } from "./services/payment";
-import { SchoolAlreadyExist, UserAlreadyHasASchool } from "./services/school";
+import { SchoolAlreadyExist, UserAlreadyHasASchool, PhoneNumberIsNotValid } from "./services/school";
 
 import { logger } from "./logger";
 import { SIGNAL } from "./constants";
@@ -63,6 +63,8 @@ const mapError = (error: Error): Error | undefined => {
             return new ApiError('School already exists', 400, 11);
         case UserAlreadyHasASchool:
             return new ApiError('User already has a school', 400, 12);
+        case PhoneNumberIsNotValid:
+            return new ApiError('Given phone number was not valid', 400, 13);
         default:
             return undefined;
     }
