@@ -67,23 +67,21 @@ const create = async (userID: string, name: string, phone?: string): Promise<Sch
 };
 
 const get = async (userID: string) => {
-    try {
-        const user = await prisma.user.findUniqueOrThrow({
-            where: {
-                id: userID
-            }
-        });
-        if (user.schoolId == null) {
-            throw new UserDoesNotHaveASchool();
+
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            id: userID
         }
-        return await prisma.school.findUniqueOrThrow({
-            where: {
-                id: user.schoolId
-            }
-        })
-    } catch (e) {
-        throw e;
+    });
+    if (user.schoolId == null) {
+        throw new UserDoesNotHaveASchool();
     }
+    return await prisma.school.findUniqueOrThrow({
+        where: {
+            id: user.schoolId
+        }
+    })
+
 }
 
 
