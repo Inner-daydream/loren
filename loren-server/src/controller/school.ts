@@ -23,7 +23,17 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
         return next(e);
     }
 }
-
+const get = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userID = (req.oidc?.user?.sub as string).substring(6);
+        const school = await SchoolService.get(userID);
+        res.status(200).json(school)
+    } catch (e) {
+        next(e);
+        res.status(500);
+    }
+}
 export const SchoolController = {
-    create
+    create,
+    get
 }

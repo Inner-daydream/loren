@@ -10,7 +10,7 @@
     "reset": "prisma db push --force-reset"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": " ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",

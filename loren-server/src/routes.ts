@@ -24,6 +24,7 @@ router.post('/user', UserController.create);
 
 router.post('/school', authorizationMiddleware([ROLES.ADMIN]), SchoolController.create);
 
+router.get('/school', authorizationMiddleware([ROLES.ADMIN, ROLES.STUDENT, ROLES.TEACHER]), SchoolController.get);
 
 router.post('/payment/checkout', authorizationMiddleware([ROLES.ADMIN]), PaymentController.createCheckoutSession)
 // TODO: check for the stripe signature & secret

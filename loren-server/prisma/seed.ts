@@ -1,102 +1,68 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, User } from '@prisma/client'
 import { UserService } from '../src/services/user'
 import { randomUUID } from 'crypto'
-import { ROLES } from '../src/services/constants'
+import { ROLES } from '../src/constants'
 import { ManagementClient } from 'auth0';
-import { ALL } from 'dns';
+import { SchoolService } from '../src/services/school';
+import { env } from '../src/env';
 import { cp } from 'fs';
 const management = new ManagementClient({
-    domain: process.env.AUTH0_DOMAIN as string,
-    token: process.env.AUTH0_TOKEN as string,
+    domain: env.AUTH0_DOMAIN,
+    token: env.AUTH0_TOKEN,
 });
 const prisma = new PrismaClient()
+
+
+
+type SeedUserData = {
+    email: string
+    password: string
+}
+
+const adminData: SeedUserData = {
+    email: 'jacques@loren.app',
+    password: randomUUID(),
+}
+const teacherData: SeedUserData = {
+    email: 'jeanne@loren.app',
+    password: randomUUID(),
+}
+
+const studentData: SeedUserData = {
+    email: 'jean@loren.app',
+    password: randomUUID(),
+}
+const schoolData = {
+    "name": "MySchool",
+    "phone": "0606060606",
+}
+
+const ensureUserExists = async (userData: SeedUserData, joinCode?: string): Promise<User> => {
+    const auth0User = await management.getUsersByEmail(userData.email)
+    let user: User | null = null
+    if (auth0User.length === 0) {
+        user = await UserService.create(userData.email, userData.password, joinCode)
+    } else {
+        if (auth0User[0].user_id) {
+            await management.deleteUser({ id: auth0User[0].user_id })
+            user = await UserService.create(userData.email, userData.password)
+        }
+    }
+    if (!user) {
+        throw new Error('User not created')
+    }
+    return user
+}
 async function main() {
-    const jacques = {
-        email: 'jacques@loren.app',
-        password: randomUUID(),
-        role: ROLES.ADMIN,
-    }
-    const jeanne = {
-        email: 'jeanne@loren.app',
-        password: randomUUID(),
-        role: ROLES.STUDENT,
-    }
-
-    const jean = {
-        email: 'jean@loren.app',
-        password: randomUUID(),
-        role: ROLES.TEACHER,
-    }
-    const res1 = management.getUsersByEmail(jacques.email, function (err, users) {
-        if (users.length == 0) {
-            UserService.create(jacques.email, jacques.password, jacques.role);
-            console.log("User jacques recreated")
-
-        } else {
-            users.map(val => {
-                if (val.user_id != undefined) {
-                    management.deleteUser({ id: val.user_id }, function (err) {
-                        if (err) {
-                            console.error("anable to delete")
-                        }
-                        console.log("User jacques recreated")
-                        UserService.create(jacques.email, jacques.password, jacques.role);
-                        // User deleted.
-                    });
-                }
-
-            })
-
-        }
-
-
-    });
-    management.getUsersByEmail(jeanne.email, function (err, users) {
-        if (users.length == 0) {
-            UserService.create(jeanne.email, jeanne.password, jeanne.role);
-            console.log("User jeanne recreated")
-
-        } else {
-            users.map(val => {
-                if (val.user_id != undefined) {
-                    management.deleteUser({ id: val.user_id }, function (err) {
-                        if (err) {
-                            console.error("anable to delete")
-                        }
-                        console.log("User jeanne recreated")
-                        UserService.create(jeanne.email, jeanne.password, jeanne.role);
-                        // User deleted.
-                    });
-                }
-
-            })
-
-        }
-    });
-    management.getUsersByEmail(jean.email, function (err, users) {
-        if (users.length == 0) {
-            UserService.create(jean.email, jean.password, jean.role);
-            console.log("User jean recreated")
-
-        } else {
-            users.map(val => {
-                if (val.user_id != undefined) {
-                    management.deleteUser({ id: val.user_id }, function (err) {
-                        if (err) {
-                            console.error("anable to delete")
-                        }
-                        console.log("User jean recreated")
-                        UserService.create(jean.email, jean.password, jean.role);
-                        // User deleted.
-                    });
-                }
-
-            })
-
-        }
-    });
-
-    console.log({ jean, jeanne, jacques })
+    const admin = await ensureUserExists(adminData)
+    const school = await SchoolService.create(admin.id, schoolData.name, schoolData.phone)
+    const teacherInvite = await SchoolService.generateInvite(school.id, ROLES.TEACHER)
+    const studentInvite = await SchoolService.generateInvite(school.id, ROLES.STUDENT)
+    await ensureUserExists(teacherData, teacherInvite)
+    await ensureUserExists(studentData, studentInvite)
+    console.log('Seeding complete')
+    console.log('User credentials:')
+    console.log(adminData, teacherData, studentData)
 }
 main()
     .then(async () => {
@@ -107,3 +73,4 @@ main()
         await prisma.$disconnect()
         process.exit(1)
     })
+

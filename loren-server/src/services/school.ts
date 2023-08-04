@@ -9,6 +9,16 @@ export class SchoolAlreadyExist extends Error {
     }
 }
 export class UserAlreadyHasASchool extends Error {
+    constructor() {
+        super('Logged user already has a school');
+    }
+}
+export class UserDoesNotHaveASchool extends Error {
+    constructor() {
+        super('Logged user does not have a school');
+    }
+}
+export class UserNotFound extends Error {
     constructor(schoolID: string, message?: string) {
         message = message || 'User already has a school';
         super(message + ': ' + schoolID);
@@ -44,6 +54,43 @@ const create = async (userID: string, name: string, phone?: string): Promise<Sch
             phone: phone,
         },
     });
+    await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            schoolId: school.id
+        }
+    });
+    generateInvite(school.id, ROLES.TEACHER);
+    generateInvite(school.id, ROLES.STUDENT);
+    return school;
+
+
+
+};
+
+const get = async (userID: string) => {
+    try {
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: userID
+            }
+        });
+        if (user.schoolId == null) {
+            throw new UserDoesNotHaveASchool();
+        }
+        return await prisma.school.findUniqueOrThrow({
+            where: {
+                id: user.schoolId
+            }
+        })
+    } catch (e) {
+        throw e;
+    }
+}
+
+const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
     try {
         await prisma.user.update({
             where: {
@@ -77,4 +124,6 @@ const generateInvite = async (schoolID: string, role: string, expiryDate?: Date)
 
 export const SchoolService = {
     create,
+    generateInvite,
+    get
 };
