@@ -4,7 +4,6 @@ import isEmail from 'validator/lib/isEmail';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from "../env";
 import { ROLES } from '../constants';
-import { UserController } from "../controller/user";
 const prisma = new PrismaClient();
 const management = new ManagementClient({
     domain: env.AUTH0_DOMAIN,

@@ -1,5 +1,7 @@
 import { PrismaClient, School } from '@prisma/client';
 import { ROLES } from '../constants';
+import validator from 'validator/';
+
 import { UserNotFound } from './user';
 const prisma = new PrismaClient();
 export class SchoolAlreadyExist extends Error {
@@ -9,8 +11,14 @@ export class SchoolAlreadyExist extends Error {
     }
 }
 export class UserAlreadyHasASchool extends Error {
-    constructor() {
-        super('Logged user already has a school');
+    constructor(schoolID: string, message?: string) {
+        message = message || 'User already has a school';
+        super(message + ': ' + schoolID);
+    }
+}
+export class PhoneNumberIsNotValid extends Error {
+    constructor(phoneNumber: string) {
+        super("Given phone number is not Valid :" + phoneNumber);
     }
 }
 export class UserDoesNotHaveASchool extends Error {
@@ -18,12 +26,7 @@ export class UserDoesNotHaveASchool extends Error {
         super('Logged user does not have a school');
     }
 }
-export class UserNotFound extends Error {
-    constructor(schoolID: string, message?: string) {
-        message = message || 'User already has a school';
-        super(message + ': ' + schoolID);
-    }
-}
+
 async function userHasSchool(userID: string): Promise<Boolean> {
     try {
         const user = await prisma.user.findUniqueOrThrow({
@@ -44,9 +47,14 @@ async function userHasSchool(userID: string): Promise<Boolean> {
 }
 const create = async (userID: string, name: string, phone?: string): Promise<School> => {
     let userId: string = userID;
+    if (phone) {
+        if (!validator.isMobilePhone(phone, "fr-FR")) {
+            throw new PhoneNumberIsNotValid(phone);
+        }
+    }
     const hasSchool = await userHasSchool(userId);
     if (hasSchool) {
-        throw new UserAlreadyHasASchool(userID);
+        throw new UserAlreadyHasASchool(userId);
     }
     const school = await prisma.school.create({
         data: {
@@ -71,45 +79,23 @@ const create = async (userID: string, name: string, phone?: string): Promise<Sch
 };
 
 const get = async (userID: string) => {
-    try {
-        const user = await prisma.user.findUniqueOrThrow({
-            where: {
-                id: userID
-            }
-        });
-        if (user.schoolId == null) {
-            throw new UserDoesNotHaveASchool();
+
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            id: userID
         }
-        return await prisma.school.findUniqueOrThrow({
-            where: {
-                id: user.schoolId
-            }
-        })
-    } catch (e) {
-        throw e;
+    });
+    if (user.schoolId == null) {
+        throw new UserDoesNotHaveASchool();
     }
+    return await prisma.school.findUniqueOrThrow({
+        where: {
+            id: user.schoolId
+        }
+    })
+
 }
 
-const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
-    try {
-        await prisma.user.update({
-            where: {
-                id: userId
-            },
-            data: {
-                schoolId: school.id
-            }
-        });
-    } catch (e) {
-        if (e.code === 'P2025') {
-            throw new UserNotFound(userID);
-        }
-        throw e;
-    }
-    generateInvite(school.id, ROLES.TEACHER);
-    generateInvite(school.id, ROLES.STUDENT);
-    return school;
-};
 
 const generateInvite = async (schoolID: string, role: string, expiryDate?: Date): Promise<string> => {
     const invite = await prisma.schoolInvite.create({
