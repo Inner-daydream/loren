@@ -29,8 +29,7 @@ const get = async (req: Request, res: Response, next: NextFunction) => {
         const school = await SchoolService.get(userID);
         res.status(200).json(school)
     } catch (e) {
-        next(e);
-        res.status(500);
+        return next(e);
     }
 }
 export const SchoolController = {
