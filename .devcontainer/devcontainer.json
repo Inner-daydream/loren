@@ -16,12 +16,12 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"GitHub.copilot",
 				"ms-vscode.vscode-typescript-next",
 				"VisualStudioExptTeam.vscodeintellicode",
 				"dbaeumer.vscode-eslint",
 				"christian-kohler.npm-intellisense",
-				"Prisma.prisma"
+				"Prisma.prisma",
+				"svelte.svelte-vscode"
 			],
 			"settings": {
 				"editor.formatOnSave": true
